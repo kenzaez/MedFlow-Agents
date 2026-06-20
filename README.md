@@ -12,7 +12,7 @@ Ce projet implémente un système d'orientation clinique préliminaire automatis
 
 ---
 
-## Architecture du Graphe (Workflow)
+## 📐 Architecture du Graphe (Workflow)
 
 L'orchestration est pilotée de façon déterministe par un agent **Supervisor** qui oriente l'état partagé (`MedicalState`) vers les agents spécialisés en fonction des données accumulées.
 
@@ -39,7 +39,7 @@ graph TD
 
 ---
 
-##  Technologies Utilisées
+## 🛠️ Technologies Utilisées
 
 * **Backend & Intelligence Artificielle :**
   * **LangGraph** & **LangChain** : Modélisation du workflow d'agents et gestion d'état partagé persistant (`SqliteSaver`).
@@ -55,7 +55,7 @@ graph TD
 
 ---
 
-## Structure du Projet
+## 📁 Structure du Projet
 
 ```text
 ├── backend/
@@ -76,12 +76,13 @@ graph TD
 ├── frontend2/
 │   ├── app/                # Frontend Next.js (App Router)
 │   └── package.json
-
+├── documentation/
+│   └── Rapport_Technique_Systeme_Medical.pdf  
 ```
 
 ---
 
-##  Installation et Lancement
+## 🚀 Installation et Lancement
 
 ### 1. Cloner le projet
 ```cmd
@@ -129,7 +130,7 @@ Accédez à l'application sur [http://localhost:3000](http://localhost:3000).
 
 ---
 
-##  Utilisation de LangGraph Studio
+## 🎨 Utilisation de LangGraph Studio
 
 LangGraph Studio permet de visualiser graphiquement le graphe en temps réel et de déboguer l'état de la mémoire.
 
