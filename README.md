@@ -1,4 +1,4 @@
-# MedFlow-Agents : Système de Consultation Médicale Multi-Agents 🏥
+# MedFlow-Agents : Systeme de Consultation Medicale Multi-Agents
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)](https://nextjs.org/)
@@ -6,56 +6,90 @@
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2-orange?logo=langchain&logoColor=white)](https://github.com/langchain-ai/langgraph)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-Projet académique réalisé à l'**EMSI Casablanca** (École Marocaine des Sciences de l'Ingénieur) dans le cadre du module **Systèmes Multi-Agents**. 
+Projet academique realise a l'EMSI Casablanca (Ecole Marocaine des Sciences de l'Ingenieur) dans le cadre du module Systemes Multi-Agents. 
 
-Ce projet implémente un système d'orientation clinique préliminaire automatisé basé sur une architecture multi-agents orchestrée par **LangGraph**, doté d'interruptions humaines natives (Human-in-the-Loop) pour le patient et le médecin traitant, et d'un serveur d'outils externes utilisant le protocole **MCP** (Model Context Protocol).
+Ce projet implemente un systeme d'orientation clinique preliminaire automatise base sur une architecture multi-agents orchestree par LangGraph, dote d'interruptions humaines natives (Human-in-the-Loop) pour le patient et le medecin traitant, et d'un serveur d'outils externes utilisant le protocole MCP (Model Context Protocol).
 
 ---
 
-## 📐 Architecture du Graphe (Workflow)
+## Architecture du Graphe (Workflow)
 
-L'orchestration est pilotée de façon déterministe par un agent **Supervisor** qui oriente l'état partagé (`MedicalState`) vers les agents spécialisés en fonction des données accumulées.
+L'orchestration est pilotee de facon deterministe par un agent Supervisor qui oriente l'etat partage (MedicalState) vers les agents specialises en fonction des donnees accumulees.
 
 ```mermaid
 graph TD
     START([__start__]) --> Supervisor{Supervisor}
     
-    Supervisor -->|Initial / Pas de synthèse| DiagnosticAgent[Diagnostic Agent]
+    Supervisor -->|Initial / Pas de synthese| DiagnosticAgent[Diagnostic Agent]
     DiagnosticAgent -->|interrupt 1..5| PatientAnswer[Patient Input]
     PatientAnswer --> DiagnosticAgent
     DiagnosticAgent -->|Guidelines MCP / Outils| DiagnosticAgent
-    DiagnosticAgent -->|Synthèse clinique + interim_care générés| Supervisor
+    DiagnosticAgent -->|Synthese clinique + interim_care generes| Supervisor
     
-    Supervisor -->|Synthèse présente / Pas de traitement| PhysicianReview[Physician Review]
+    Supervisor -->|Synthese presente / Pas de traitement| PhysicianReview[Physician Review]
     PhysicianReview -->|interrupt 6| PhysicianInput[Physician Treatment / Prescription]
     PhysicianInput --> PhysicianReview
-    PhysicianReview -->|Prescription générée| Supervisor
+    PhysicianReview -->|Prescription generee| Supervisor
     
-    Supervisor -->|Prescription & Synthèse présentes| ReportAgent[Report Agent]
-    ReportAgent -->|Rapport final Markdown généré| Supervisor
+    Supervisor -->|Prescription & Synthese presentes| ReportAgent[Report Agent]
+    ReportAgent -->|Rapport final Markdown genere| Supervisor
     
-    Supervisor -->|Rapport final présent| END([__end__])
+    Supervisor -->|Rapport final present| END([__end__])
 ```
 
 ---
 
-## 🛠️ Technologies Utilisées
+## Captures d'ecran
 
-* **Backend & Intelligence Artificielle :**
-  * **LangGraph** & **LangChain** : Modélisation du workflow d'agents et gestion d'état partagé persistant (`SqliteSaver`).
-  * **FastAPI** & **Uvicorn** : Exposition des routes de consultation et gestion asynchrone des interruptions.
-  * **Groq API / LLaMA-3.3-70b-versatile** : Modèle de langage à basse latence (température à 0 pour assurer la cohérence au rejeu).
-  * **Model Context Protocol (MCP)** : Serveur d'outils fournissant des recommandations cliniques de référence par mot-clé.
-* **Frontends :**
-  * **Next.js 15 (React, TypeScript & Tailwind CSS)** : Interface web premium monopage animée et réactive.
-  * **Streamlit** : Prototype d'interface écrit en Python pur pour tests rapides.
-* **Documentation & Rapports :**
-  * **ReportLab** : Générateur Python de rapport technique PDF (`generate_report_pdf.py`).
-  * **LaTeX** : Source du rapport académique (`Rapport_Technique_Systeme_Medical.tex`).
+Voici les captures d'ecran illustrant le fonctionnement de l'application et les etapes dans LangGraph Studio.
+
+### Interface Utilisateur (Next.js)
+
+* **Ecran 1 — Saisie du Cas Patient :**
+  ![Ecran 1](./documentation/images/capture1.png)
+
+* **Ecran 2 — Questions Medicales (Q/R) :**
+  ![Ecran 2](./documentation/images/capture2.png)
+
+* **Ecran 3 — Revue Medecin Traitant :**
+  ![Ecran 3](./documentation/images/capture3.png)
+
+* **Ecran 4 — Rapport Final :**
+  ![Ecran 4](./documentation/images/capture4.png)
+
+### Visualisation dans LangGraph Studio
+
+* **Vue Globale du Graphe (Figure 5) :**
+  ![Vue Globale](./documentation/images/capture5.png)
+
+* **Interruption Patient (Figure 6) :**
+  ![Interruption Patient](./documentation/images/capture6.png)
+
+* **Interruption Medecin (Figure 7) :**
+  ![Interruption Medecin](./documentation/images/capture7.png)
+
+* **Etat Final (Figure 8) :**
+  ![Etat Final](./documentation/images/capture8.png)
 
 ---
 
-## 📁 Structure du Projet
+## Technologies Utilisees
+
+* **Backend & Intelligence Artificielle :**
+  * LangGraph & LangChain : Modelisation du workflow d'agents et gestion d'etat partage persistant (SqliteSaver).
+  * FastAPI & Uvicorn : Exposition des routes de consultation et gestion asynchrone des interruptions.
+  * Groq API / LLaMA-3.3-70b-versatile : Modele de langage a basse latence (temperature a 0 pour assurer la coherence au rejeu).
+  * Model Context Protocol (MCP) : Serveur d'outils fournissant des recommandations cliniques de reference par mot-cle.
+* **Frontends :**
+  * Next.js 15 (React, TypeScript & Tailwind CSS) : Interface web premium monopage animee et reactive.
+  * Streamlit : Prototype d'interface ecrit en Python pur pour tests rapides.
+* **Documentation & Rapports :**
+  * ReportLab : Generateur Python de rapport technique PDF (generate_report_pdf.py).
+  * LaTeX : Source du rapport academique (Rapport_Technique_Systeme_Medical.tex).
+
+---
+
+## Structure du Projet
 
 ```text
 ├── backend/
@@ -64,7 +98,7 @@ graph TD
 │   │   ├── tools/          # Outils internes et client MCP
 │   │   ├── api.py          # Endpoints FastAPI de la consultation
 │   │   ├── graph.py        # Assemblage et compilation du StateGraph
-│   │   └── state.py        # Définition de l'état partagé MedicalState
+│   │   └── state.py        # Definition de l'etat partage MedicalState
 │   ├── langgraph.json      # Configuration LangGraph Studio
 │   └── requirements.txt
 ├── mcp_server/
@@ -76,13 +110,14 @@ graph TD
 ├── frontend2/
 │   ├── app/                # Frontend Next.js (App Router)
 │   └── package.json
-├── documentation/
-│   └── Rapport_Technique_Systeme_Medical.pdf  
+└── documentation/
+    ├── Rapport_Technique_Systeme_Medical.pdf  # Rapport de projet academique (export PDF depuis Overleaf)
+    └── images/             # Emplacement des captures d'ecran du projet (Studio et UI)
 ```
 
 ---
 
-## 🚀 Installation et Lancement
+## Installation et Lancement
 
 ### 1. Cloner le projet
 ```cmd
@@ -126,11 +161,11 @@ cd ../frontend2
 npm install
 npm run dev
 ```
-Accédez à l'application sur [http://localhost:3000](http://localhost:3000).
+Accédez à l'application sur http://localhost:3000.
 
 ---
 
-## 🎨 Utilisation de LangGraph Studio
+## Utilisation de LangGraph Studio
 
 LangGraph Studio permet de visualiser graphiquement le graphe en temps réel et de déboguer l'état de la mémoire.
 
@@ -148,9 +183,9 @@ LangGraph Studio permet de visualiser graphiquement le graphe en temps réel et 
 
 ---
 
-## ⚠️ Cadre Éthique et Mention Légale
+## Cadre Ethique et Mention Legale
 
-Ce projet est un travail d'étude académique et n'a pas fait l'objet d'une certification réglementaire de dispositif médical. 
-* Il ne fournit aucun diagnostic définitif et se limite à de l'**orientation clinique préliminaire**.
-* Il exige systématiquement une **validation humaine** par un médecin traitant habilité avant de formaliser le rapport final.
-* Les rapports générés comportent obligatoirement la mention d'avertissement réglementaire : *"Ce système ne remplace pas une consultation médicale. Ce rapport est généré à titre académique uniquement."*
+Ce projet est un travail d'etude academique et n'a pas fait l'objet d'une certification reglementaire de dispositif medical. 
+* Il ne fournit aucun diagnostic definitif et se limite a de l'orientation clinique preliminaire.
+* Il exige systematiquement une validation humaine par un medecin traitant habilite avant de formaliser le rapport final.
+* Les rapports generes comportent obligatoirement la mention d'avertissement reglementaire : "Ce systeme ne remplace pas une consultation medicale. Ce rapport est genere a titre academique uniquement."
