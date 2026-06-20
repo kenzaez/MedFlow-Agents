@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostic Médical - Système de consultation multi-agents</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f5f3ef;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #fafaf8;
+            --accent-yellow: #e8e44a;
+            --accent-green: #c4d4a0;
+            --text-primary: #2d2d2d;
+            --text-secondary: #6b6b6b;
+            --text-muted: #9a9a9a;
+            --border-color: #e5e5e0;
+            --card-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo-section {
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-yellow), var(--accent-green));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .logo-text p {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+
+        .institution {
+            font-size: 10px;
+            color: var(--text-muted);
+            padding: 8px 12px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 20px 0;
+        }
+
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        /* Progress Tracker */
+        .progress-tracker {
+            margin-bottom: 8px;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .progress-step.active {
+            background: linear-gradient(135deg, rgba(232, 228, 74, 0.15), rgba(196, 212, 160, 0.15));
+        }
+
+        .progress-step.completed {
+            opacity: 0.7;
+        }
+
+        .step-indicator {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .progress-step.active .step-indicator {
+            background: var(--accent-yellow);
+            border-color: var(--accent-yellow);
+            color: var(--text-primary);
+        }
+
+        .progress-step.completed .step-indicator {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: var(--text-primary);
+        }
+
+        .step-content h4 {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .step-content p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Chat History */
+        .history-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+
+        .history-item {
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .history-item:hover {
+            border-color: var(--accent-yellow);
+        }
+
+        .history-item h5 {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .history-item .date {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .history-item .preview {
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .new-consultation-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--accent-yellow), var(--accent-green));
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .new-consultation-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(232, 228, 74, 0.3);
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 24px 12px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 32px 40px;
+            max-width: 900px;
+        }
+
+        .main-header {
+            margin-bottom: 32px;
+        }
+
+        .main-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .main-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Form Card */
+        .form-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--bg-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 0 3px rgba(232, 228, 74, 0.2);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #3a8f8f, #2d7a7a);
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(58, 143, 143, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            margin-top: 20px;
+            padding: 14px 18px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-bar.visible {
+            display: flex;
+        }
+
+        .status-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-yellow);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .result-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 16px;
+            border-left: 4px solid var(--accent-yellow);
+        }
+
+        .result-card.agent-2 {
+            border-left-color: var(--accent-green);
+        }
+
+        .result-card.agent-3 {
+            border-left-color: #7eb8c9;
+        }
+
+        .result-card.agent-4 {
+            border-left-color: #d4a574;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .result-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .result-card:nth-child(1) .result-icon { background: rgba(232, 228, 74, 0.2); }
+        .result-card:nth-child(2) .result-icon { background: rgba(196, 212, 160, 0.2); }
+        .result-card:nth-child(3) .result-icon { background: rgba(126, 184, 201, 0.2); }
+        .result-card:nth-child(4) .result-icon { background: rgba(212, 165, 116, 0.2); }
+
+        .result-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .result-header span {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .result-content {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .result-content ul {
+            margin: 12px 0;
+            padding-left: 20px;
+        }
+
+        .result-content li {
+            margin-bottom: 6px;
+        }
+
+        /* Patient Summary Card */
+        .patient-summary {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .patient-summary.visible {
+            display: flex;
+        }
+
+        .patient-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-yellow), var(--accent-green));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .patient-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .patient-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .patient-stats {
+            display: flex;
+            gap: 24px;
+            margin-left: auto;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-item .value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-item .unit {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .app-container {
+                flex-direction: column;
+            }
+
+            .patient-summary {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .patient-stats {
+                margin-left: 0;
+                margin-top: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo">
+                    <div class="logo-icon">🩺</div>
+                    <div class="logo-text">
+                        <h1>Diagnostic Médical</h1>
+                        <p>Système de consultation multi-agents</p>
+                    </div>
+                </div>
+                <div class="institution">EMSI — École Marocaine des Sciences de l'Ingénieur</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-title">Étape actuelle</div>
+            <div class="progress-tracker">
+                <div class="progress-step active" data-step="1">
+                    <div class="step-indicator">1</div>
+                    <div class="step-content">
+                        <h4>Saisie patient</h4>
+                        <p>Informations de base</p>
+                    </div>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-indicator">2</div>
+                    <div class="step-content">
+                        <h4>Questions médicales</h4>
+                        <p>Analyse des symptômes</p>
+                    </div>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-indicator">3</div>
+                    <div class="step-content">
+                        <h4>Revue médecin</h4>
+                        <p>Évaluation clinique</p>
+                    </div>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-indicator">4</div>
+                    <div class="step-content">
+                        <h4>Rapport final</h4>
+                        <p>Recommandations</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="history-section">
+                <div class="section-title">Historique des consultations</div>
+                <div class="history-list" id="historyList">
+                    <div class="empty-history">Aucune consultation enregistrée</div>
+                </div>
+                <button class="new-consultation-btn" onclick="resetConsultation()">
+                    ✨ Nouvelle consultation
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <h2>Nouvelle Consultation</h2>
+                <p>Bienvenue dans le système de consultation médicale. Veuillez renseigner vos informations ci-dessous.</p>
+            </header>
+
+            <!-- Patient Summary (shown after submission) -->
+            <div class="patient-summary" id="patientSummary">
+                <div class="patient-avatar">👤</div>
+                <div class="patient-info">
+                    <h3 id="summaryName">-</h3>
+                    <p id="summarySymptoms">-</p>
+                </div>
+                <div class="patient-stats">
+                    <div class="stat-item">
+                        <div class="label">Étapes</div>
+                        <div class="value">4</div>
+                        <div class="unit">agents</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="label">Statut</div>
+                        <div class="value" id="statusIndicator">⏳</div>
+                        <div class="unit" id="statusText">En cours</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Card -->
+            <div class="form-card" id="formCard">
+                <form id="consultationForm">
+                    <div class="form-group">
+                        <label for="patientName">Nom du patient</label>
+                        <input type="text" id="patientName" name="patientName" placeholder="Entrez le nom complet du patient" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="symptoms">Décrivez vos symptômes</label>
+                        <textarea id="symptoms" name="symptoms" placeholder="Décrivez en détail les symptômes ressentis, leur durée, leur intensité..." required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span>🚀</span>
+                        <span>Démarrer la consultation</span>
+                    </button>
+                </form>
+
+                <div class="status-bar" id="statusBar">
+                    <div class="status-spinner"></div>
+                    <span class="status-text" id="statusMessage">Initialisation...</span>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Configuration
+        const MAX_HISTORY = 20;
+        const STORAGE_KEY = 'medical_consultations';
+
+        // Agent definitions
+        const agents = [
+            {
+                name: "Agent de Triage",
+                icon: "🔍",
+                description: "Analyse initiale des symptômes",
+                prompt: (patientName, symptoms) => `Tu es un agent de triage médical francophone. Analyse les symptômes suivants pour le patient "${patientName}":
+
+Symptômes rapportés: ${symptoms}
+
+Fournis une analyse structurée incluant:
+1. Classification de l'urgence (faible/moyenne/haute)
+2. Systèmes corporels potentiellement impliqués
+3. Questions de suivi recommandées
+4. Signaux d'alarme à surveiller
+
+Réponds en français de manière professionnelle et concise.`
+            },
+            {
+                name: "Agent de Questions Médicales",
+                icon: "❓",
+                description: "Approfondissement diagnostique",
+                prompt: (patientName, symptoms, previousOutput) => `Tu es un médecin spécialisé en diagnostic différentiel. En te basant sur l'analyse de triage précédente:
+
+${previousOutput}
+
+Pour le patient "${patientName}" avec les symptômes: ${symptoms}
+
+Génère:
+1. Liste des diagnostics différentiels possibles (du plus au moins probable)
+2. Examens complémentaires recommandés
+3. Antécédents médicaux à vérifier
+4. Facteurs de risque à évaluer
+
+Réponds en français avec précision médicale.`
+            },
+            {
+                name: "Agent Revue Médecin",
+                icon: "👨‍⚕️",
+                description: "Évaluation clinique approfondie",
+                prompt: (patientName, symptoms, previousOutput) => `Tu es un médecin senior effectuant une revue clinique. Basé sur les analyses précédentes:
+
+${previousOutput}
+
+Pour le patient "${patientName}":
+
+Fournis:
+1. Évaluation critique des diagnostics proposés
+2. Recommandations de prise en charge immédiate
+3. Critères d'orientation (urgences, spécialiste, médecin traitant)
+4. Conseils de surveillance à domicile
+5. Signes nécessitant une consultation urgente
+
+Réponds en français avec autorité médicale.`
+            },
+            {
+                name: "Agent Rapport Final",
+                icon: "📋",
+                description: "Synthèse et recommandations",
+                prompt: (patientName, symptoms, previousOutput) => `Tu es un médecin rédigeant un rapport de consultation final. Basé sur toutes les analyses:
+
+${previousOutput}
+
+Rédige un rapport complet pour "${patientName}" incluant:
+
+RÉSUMÉ CLINIQUE:
+- Motif de consultation
+- Principales conclusions
+
+RECOMMANDATIONS:
+- Actions immédiates
+- Suivi recommandé
+- Médicaments suggérés (si applicable)
+- Mesures préventives
+
+AVERTISSEMENT:
+Rappelle que ce rapport est généré par IA et ne remplace pas une consultation médicale réelle.
+
+Réponds en français de manière claire et accessible au patient.`
+            }
+        ];
+
+        // State
+        let currentStep = 1;
+        let consultationResults = [];
+
+        // DOM Elements
+        const form = document.getElementById('consultationForm');
+        const statusBar = document.getElementById('statusBar');
+        const statusMessage = document.getElementById('statusMessage');
+        const resultsSection = document.getElementById('resultsSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const patientSummary = document.getElementById('patientSummary');
+        const historyList = document.getElementById('historyList');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const patientName = document.getElementById('patientName').value.trim();
+            const symptoms = document.getElementById('symptoms').value.trim();
+
+            if (!patientName || !symptoms) return;
+
+            // Show patient summary
+            document.getElementById('summaryName').textContent = patientName;
+            document.getElementById('summarySymptoms').textContent = symptoms.substring(0, 100) + (symptoms.length > 100 ? '...' : '');
+            patientSummary.classList.add('visible');
+
+            // Start consultation
+            await runConsultation(patientName, symptoms);
+        });
+
+        // Run multi-agent pipeline
+        async function runConsultation(patientName, symptoms) {
+            submitBtn.disabled = true;
+            statusBar.classList.add('visible');
+            resultsSection.classList.remove('visible');
+            resultsSection.innerHTML = '';
+            consultationResults = [];
+
+            let previousOutput = '';
+
+            for (let i = 0; i < agents.length; i++) {
+                const agent = agents[i];
+                currentStep = i + 1;
+                updateProgressTracker(currentStep);
+                updateStatus(`Étape ${currentStep}/4 : ${agent.description}...`);
+
+                try {
+                    const prompt = agent.prompt(patientName, symptoms, previousOutput);
+                    const result = await callAI(prompt);
+                    
+                    previousOutput = result;
+                    consultationResults.push({
+                        agent: agent.name,
+                        icon: agent.icon,
+                        output: result
+                    });
+
+                    // Show result immediately
+                    appendResult(agent, result, i);
+                    resultsSection.classList.add('visible');
+
+                } catch (error) {
+                    console.error(`Error in agent ${agent.name}:`, error);
+                    const errorMsg = `Erreur lors de l'exécution de l'agent: ${error.message}`;
+                    consultationResults.push({
+                        agent: agent.name,
+                        icon: agent.icon,
+                        output: errorMsg
+                    });
+                    appendResult(agent, errorMsg, i);
+                }
+            }
+
+            // Complete
+            updateStatus('Consultation terminée ✓');
+            document.getElementById('statusIndicator').textContent = '✓';
+            document.getElementById('statusText').textContent = 'Terminé';
+            submitBtn.disabled = false;
+
+            // Save to history
+            saveToHistory(patientName, symptoms, consultationResults);
+        }
+
+        // Simulated AI call (replace with actual API call)
+        async function callAI(prompt) {
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
+            
+            // For demo purposes, return simulated responses
+            // In production, replace with actual Claude API call
+            return generateSimulatedResponse(prompt);
+        }
+
+        // Simulated response generator
+        function generateSimulatedResponse(prompt) {
+            if (prompt.includes('triage')) {
+                return `**Analyse de Triage**
+
+🔴 **Classification d'urgence:** Moyenne
+
+**Systèmes potentiellement impliqués:**
+• Système respiratoire
+• Système cardiovasculaire
+• Système nerveux central
+
+**Questions de suivi recommandées:**
+1. Depuis combien de temps ces symptômes sont-ils présents?
+2. Y a-t-il des facteurs déclencheurs identifiés?
+3. Prenez-vous actuellement des médicaments?
+4. Avez-vous des antécédents médicaux pertinents?
+
+**Signaux d'alarme à surveiller:**
+⚠️ Difficulté respiratoire sévère
+⚠️ Douleur thoracique intense
+⚠️ Perte de conscience
+⚠️ Fièvre supérieure à 39°C`;
+            }
+            
+            if (prompt.includes('diagnostic différentiel')) {
+                return `**Analyse Diagnostique**
+
+**Diagnostics différentiels (par ordre de probabilité):**
+1. **Infection virale des voies respiratoires** - Probabilité: 45%
+2. **Syndrome grippal** - Probabilité: 25%
+3. **Bronchite aiguë** - Probabilité: 15%
+4. **Allergie saisonnière** - Probabilité: 10%
+5. **Autres causes** - Probabilité: 5%
+
+**Examens complémentaires recommandés:**
+• Hémogramme complet
+• CRP (Protéine C-réactive)
+• Radiographie thoracique (si symptômes respiratoires persistants)
+
+**Antécédents à vérifier:**
+• Allergies connues
+• Maladies chroniques
+• Vaccinations récentes`;
+            }
+            
+            if (prompt.includes('revue clinique')) {
+                return `**Évaluation Clinique Senior**
+
+**Analyse critique:**
+Les diagnostics proposés sont cohérents avec la présentation clinique. L'infection virale reste l'hypothèse la plus probable.
+
+**Prise en charge immédiate:**
+• Repos au domicile
+• Hydratation abondante
+• Surveillance de la température
+• Antalgiques/antipyrétiques si nécessaire
+
+**Orientation recommandée:**
+→ Médecin traitant dans les 48-72h si persistance des symptômes
+
+**Conseils de surveillance:**
+• Noter l'évolution des symptômes
+• Mesurer la température 2x/jour
+
+**⚠️ Consultation urgente si:**
+• Fièvre > 39.5°C persistante
+• Difficultés respiratoires
+• Confusion ou altération de la conscience
+• Douleur thoracique`;
+            }
+            
+            return `**RAPPORT DE CONSULTATION MÉDICALE**
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**RÉSUMÉ CLINIQUE**
+
+Le patient présente des symptômes évocateurs d'une affection d'origine probablement virale. L'évaluation multi-agents suggère une prise en charge ambulatoire avec surveillance.
+
+**RECOMMANDATIONS THÉRAPEUTIQUES**
+
+1. **Mesures générales:**
+   • Repos adapté
+   • Hydratation (2-3L/jour)
+   • Alimentation équilibrée
+
+2. **Traitement symptomatique:**
+   • Paracétamol 1g toutes les 6h si fièvre/douleurs
+   • Lavages de nez au sérum physiologique
+
+3. **Suivi:**
+   • Réévaluation à 48-72h
+   • Consultation médicale si aggravation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ **AVERTISSEMENT IMPORTANT**
+Ce rapport est généré par un système d'intelligence artificielle à des fins éducatives uniquement. Il ne constitue pas un avis médical et ne remplace en aucun cas une consultation avec un professionnel de santé qualifié.`;
+        }
+
+        // Update progress tracker UI
+        function updateProgressTracker(step) {
+            document.querySelectorAll('.progress-step').forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+                if (index + 1 < step) {
+                    el.classList.add('completed');
+                } else if (index + 1 === step) {
+                    el.classList.add('active');
+                }
+            });
+        }
+
+        // Update status message
+        function updateStatus(message) {
+            statusMessage.textContent = message;
+        }
+
+        // Append result card
+        function appendResult(agent, output, index) {
+            const card = document.createElement('div');
+            card.className = `result-card agent-${index + 1}`;
+            card.innerHTML = `
+                <div class="result-header">
+                    <div class="result-icon">${agent.icon}</div>
+                    <div>
+                        <h3>${agent.name}</h3>
+                        <span>${agent.description}</span>
+                    </div>
+                </div>
+                <div class="result-content">${formatOutput(output)}</div>
+            `;
+            resultsSection.appendChild(card);
+        }
+
+        // Format output with basic markdown-like styling
+        function formatOutput(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>')
+                .replace(/• /g, '&bull; ')
+                .replace(/→ /g, '➜ ');
+        }
+
+        // Save consultation to history
+        function saveToHistory(patientName, symptoms, results) {
+            const history = getHistory();
+            
+            const entry = {
+                id: Date.now(),
+                patientName,
+                symptoms,
+                results,
+                date: new Date().toLocaleString('fr-FR')
+            };
+
+            history.unshift(entry);
+            
+            // Limit to MAX_HISTORY entries
+            if (history.length > MAX_HISTORY) {
+                history.pop();
+            }
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            loadHistory();
+        }
+
+        // Get history from localStorage
+        function getHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch {
+                return [];
+            }
+        }
+
+        // Load and display history
+        function loadHistory() {
+            const history = getHistory();
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="empty-history">Aucune consultation enregistrée</div>';
+                return;
+            }
+
+            historyList.innerHTML = history.map(entry => `
+                <div class="history-item" onclick="loadConsultation(${entry.id})">
+                    <h5>${entry.patientName}</h5>
+                    <div class="date">${entry.date}</div>
+                    <div class="preview">${entry.symptoms.substring(0, 30)}${entry.symptoms.length > 30 ? '...' : ''}</div>
+                </div>
+            `).join('');
+        }
+
+        // Load a consultation from history
+        function loadConsultation(id) {
+            const history = getHistory();
+            const entry = history.find(h => h.id === id);
+            
+            if (!entry) return;
+
+            // Update form
+            document.getElementById('patientName').value = entry.patientName;
+            document.getElementById('symptoms').value = entry.symptoms;
+
+            // Show patient summary
+            document.getElementById('summaryName').textContent = entry.patientName;
+            document.getElementById('summarySymptoms').textContent = entry.symptoms.substring(0, 100) + (entry.symptoms.length > 100 ? '...' : '');
+            document.getElementById('statusIndicator').textContent = '✓';
+            document.getElementById('statusText').textContent = 'Terminé';
+            patientSummary.classList.add('visible');
+
+            // Show results
+            resultsSection.innerHTML = '';
+            entry.results.forEach((result, index) => {
+                const agent = agents[index];
+                appendResult(agent, result.output, index);
+            });
+            resultsSection.classList.add('visible');
+
+            // Update progress to completed
+            updateProgressTracker(5);
+
+            // Hide status bar
+            statusBar.classList.remove('visible');
+        }
+
+        // Reset consultation
+        function resetConsultation() {
+            form.reset();
+            currentStep = 1;
+            updateProgressTracker(1);
+            statusBar.classList.remove('visible');
+            resultsSection.classList.remove('visible');
+            resultsSection.innerHTML = '';
+            patientSummary.classList.remove('visible');
+            document.getElementById('statusIndicator').textContent = '⏳';
+            document.getElementById('statusText').textContent = 'En cours';
+            consultationResults = [];
+        }
+    </script>
+</body>
+</html>
