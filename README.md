@@ -84,8 +84,7 @@ Voici les captures d'ecran illustrant le fonctionnement de l'application et les 
   * Next.js 15 (React, TypeScript & Tailwind CSS) : Interface web premium monopage animee et reactive.
   * Streamlit : Prototype d'interface ecrit en Python pur pour tests rapides.
 * **Documentation & Rapports :**
-  * ReportLab : Generateur Python de rapport technique PDF (generate_report_pdf.py).
-  * LaTeX : Source du rapport academique (Rapport_Technique_Systeme_Medical.tex).
+  * Repport pdf
 
 ---
 
